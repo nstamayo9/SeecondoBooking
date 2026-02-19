@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exclusive Offers | See Condo</title>
+    
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&family=Anton&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+   
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-gold: #b99d75;
+            --primary-dark: #191919;
+            --text-body: #545454;
+            --bg-light: #f8f5f0;
+        }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-body);
+            min-height: 100vh;
+        }
+
+        /* --- PARALLAX HEADER --- */
+        .page-header {
+            position: relative;
+            height: 60vh;
+            background: url('<%= (typeof config !== "undefined" && config.heroImages && config.heroImages.length > 0) ? config.heroImages[0] : "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070" %>') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+        .header-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+        }
+        .header-content { position: relative; z-index: 2; }
+        
+        .sub-title {
+            font-size: 1rem; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 1rem; display: block;
+            color: var(--primary-gold); font-weight: 600;
+        }
+        .main-title {
+            font-family: 'Cormorant Garamond', serif; font-size: 5rem; line-height: 1; margin-bottom: 1rem;
+        }
+
+        /* --- NAVBAR (Matches Index) --- */
+        .navbar { 
+            background: rgba(0,0,0,0.8) !important; 
+            backdrop-filter: blur(10px); 
+            padding: 1.5rem 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-link { 
+            color: rgba(255,255,255,0.9) !important; 
+            font-size: 0.8rem; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            font-weight: 500; 
+        }
+        .nav-link:hover { color: var(--primary-gold) !important; }
+
+        /* --- PROMO CARDS --- */
+        .promo-card {
+            background: white; border: none; border-radius: 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            height: 100%; position: relative; overflow: hidden;
+        }
+        .promo-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .promo-header {
+            background: var(--primary-dark); color: white;
+            padding: 40px 20px; text-align: center;
+            font-family: 'Poppins', sans-serif;
+            position: relative;
+        }
+        .promo-value {
+            font-family: 'Jost', sans-serif; font-size: 3rem; line-height: 1; color: var(--primary-gold);
+        }
+        .promo-type {
+            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; opacity: 0.8;
+        }
+        
+        .promo-body { padding: 40px 30px; text-align: center; }
+        .promo-name { font-family: 'Jost', sans-serif; font-size: 1rem; margin-bottom: 20px; color: var(--primary-dark); }
+
+        .code-box {
+            border: 1px dashed var(--primary-gold); background: #fafafa;
+            padding: 15px; margin-bottom: 20px; cursor: pointer; transition: all 0.3s;
+            font-family: 'Jost', sans-serif; font-weight: 600; font-size: 1.2rem; letter-spacing: 2px; color: var(--text-body);
+        }
+        .code-box:hover { background: var(--primary-gold); color: white; border-color: var(--primary-gold); }
+
+        .dates-list {
+            list-style: none; padding: 0; margin: 0; max-height: 100px; overflow-y: auto;
+            font-size: 0.85rem; color: #888; border-top: 1px solid #eee; padding-top: 15px;
+        }
+        .dates-list li { margin-bottom: 5px; }
+        .dates-list::-webkit-scrollbar { width: 4px; }
+        .dates-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+        @media (max-width: 768px) { .main-title { font-size: 3.5rem; } }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container px-lg-5 px-3">
+            <a class="navbar-brand py-0" href="/">
+                <img src="/images/logo.png" alt="See Condo" style="height: 45px; width: auto; object-fit: contain;">
+            </a>
+            <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><i class="fas fa-bars"></i></button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/rooms/all">Rooms</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/promos">Offers</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/dashboard">Bookings</a></li>
+                    <% if (!user) { %>
+                        <li class="nav-item ms-lg-4 mt-3 mt-lg-0"><button class="btn btn-outline-light rounded-0 text-uppercase px-4 py-2" style="letter-spacing: 1px; font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button></li>
+                    <% } else { %>
+                        <li class="nav-item ms-lg-4 mt-3 mt-lg-0"><a class="nav-link text-warning" href="/auth/logout">Logout</a></li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HEADER -->
+    <header class="page-header">
+        <div class="header-overlay"></div>
+        <div class="header-content">
+            <span class="sub-title">Special Packages</span>
+            <h1 class="main-title">Exclusive Offers</h1>
+        </div>
+    </header>
+
+    <!-- PROMO GRID -->
+    <div class="container py-5 my-5">
+        <div class="row g-4 justify-content-center">
+            
+            <% if (promotions.length > 0) { %>
+                <% promotions.forEach(promo => { %>
+                    
+                    <!-- DATE FILTERING LOGIC -->
+                    <% 
+                        const today = new Date();
+                        today.setHours(0,0,0,0);
+                        let validDates = [];
+                        if (promo.eligibleDates && promo.eligibleDates.length > 0) {
+                            validDates = promo.eligibleDates.map(d => new Date(d)).filter(d => d >= today).sort((a, b) => a - b);
+                        }
+                        const hasDates = validDates.length > 0;
+                        const isGeneralPromo = (!promo.eligibleDates || promo.eligibleDates.length === 0);
+                    %>
+
+                    <% if (hasDates || isGeneralPromo) { %>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="promo-card">
+                                <div class="promo-header">
+                                    <div class="promo-value">
+                                        <% if(promo.type === 'percentage') { %><%= promo.discountValue %>%<% } else if(promo.type === 'fixed') { %>₱<%= promo.discountValue.toLocaleString() %><% } else { %>+<%= promo.extensionHours %>h<% } %>
+                                    </div>
+                                    <div class="promo-type">
+                                        <% if(promo.type === 'extension') { %> Free Extension <% } else { %> Discount Off <% } %>
+                                    </div>
+                                </div>
+                                <div class="promo-body">
+                                    <h4 class="promo-name"><%= promo.name %></h4>
+                                    
+                                    <div class="code-box" onclick="copyCode('<%= promo.code %>')" title="Click to Copy">
+                                        <%= promo.code %> <i class="far fa-copy ms-2 small"></i>
+                                    </div>
+
+                                    <% if (hasDates) { %>
+                                        <div class="text-uppercase small fw-bold mb-2" style="font-size: 0.7rem; letter-spacing: 1px; color: var(--primary-gold);">Valid Dates</div>
+                                        <ul class="dates-list">
+                                            <% validDates.forEach(date => { %>
+                                                <li><%= date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %></li>
+                                            <% }) %>
+                                        </ul>
+                                    <% } else { %>
+                                        <div class="text-success small fw-bold mt-3 text-uppercase" style="letter-spacing: 1px;">
+                                            <i class="fas fa-check-circle me-1"></i> Available Anytime
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+
+                <% }) %>
+            <% } else { %>
+                <div class="col-12 text-center py-5">
+                    <h3 class="text-muted" style="font-family: 'Cormorant Garamond', serif; font-size: 2rem;">No active offers at the moment.</h3>
+                    <p class="text-muted">Please check back later for exclusive deals.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL -->
+    <%- include('partials/login-modal') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function copyCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Promo Code Copied: ' + code);
+            });
+        }
+    </script>
+</body>
+</html>

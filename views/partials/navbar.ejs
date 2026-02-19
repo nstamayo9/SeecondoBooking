@@ -1,0 +1,140 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+        
+        <!-- LOGO SECTION -->
+        <a class="navbar-brand py-0" href="/">
+            <img src="/images/logo.png" alt="See Condo" style="height: 50px; width: auto; object-fit: contain;">
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                
+                <% if (user) { %>
+                    <!-- LOGGED IN USER MENU -->
+                    
+                    <!-- 1. DASHBOARD LINK (Staff+) -->
+                    <% if (['staff', 'manager', 'admin', 'superadmin'].includes(user.role)) { %>
+                        <li class="nav-item">
+                            <a class="nav-link text-warning" href="/admin">
+                                <i class="fas fa-user-shield me-1"></i> Dashboard
+                            </a>
+                        </li>
+                    <% } %>
+                    
+                    <!-- 2. MANUAL BOOKING LINK (Staff+) -->
+                    <% if (['staff', 'manager', 'admin', 'superadmin'].includes(user.role)) { %>
+                        <li class="nav-item">
+                            <a class="nav-link text-info" href="/staff/book">
+                                <i class="fas fa-calendar-plus me-1"></i> Manual Book
+                            </a>
+                        </li>
+                    <% } %>
+
+                    <!-- USER DROPDOWN -->
+                    <li class="nav-item dropdown ms-3">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                            <% if(user.image) { %>
+                                <img src="<%= user.image %>" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;" referrerpolicy="no-referrer">
+                            <% } else { %>
+                                <i class="fas fa-user-circle fa-lg me-2"></i>
+                            <% } %>
+                            <%= user.firstName %>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-list me-2"></i> My Bookings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="/auth/logout"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                        </ul>
+                    </li>
+
+                <% } else { %>
+                    <!-- LOGGED OUT: SHOW LOGIN BUTTON -->
+                    <li class="nav-item ms-2">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            Login / Sign Up
+                        </button>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- LOGIN MODAL -->
+<div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
+                
+                <!-- GUEST LOGIN -->
+                <div class="text-center mb-4">
+                    <h4 class="fw-bold text-primary mb-1">Guest Booking</h4>
+                    <p class="text-muted small">Sign in with Google to book.</p>
+                    <div class="d-grid">
+                        <a href="/auth/google" class="btn btn-outline-danger btn-lg shadow-sm">
+                            <i class="fab fa-google me-2"></i> Continue with Google
+                        </a>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-4">
+                    <div class="flex-grow-1 border-bottom"></div>
+                    <span class="px-3 text-muted small fw-bold">OR</span>
+                    <div class="flex-grow-1 border-bottom"></div>
+                </div>
+
+                <!-- STAFF LOGIN -->
+                <div class="text-start">
+                    <h6 class="fw-bold text-dark"><i class="fas fa-user-shield me-2"></i> Staff Login</h6>
+                    
+                    <form action="/auth/login" method="POST">
+                        <div class="form-floating mb-2">
+                            <input type="text" name="username" class="form-control" id="uInput" placeholder="Username" required>
+                            <label for="uInput">Username</label>
+                        </div>
+                        
+                        <div class="input-group mb-3">
+                            <div class="form-floating flex-grow-1">
+                                <input type="password" name="password" class="form-control" id="pInput" placeholder="Password" required>
+                                <label for="pInput">Password</label>
+                            </div>
+                            <span class="input-group-text bg-white" style="cursor: pointer;" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="toggleIcon"></i>
+                            </span>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-dark btn-lg">Login</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('pInput');
+        const icon = document.getElementById('toggleIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+</script>

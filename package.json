@@ -1,0 +1,49 @@
+{
+  "name": "condo-booking-system",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "prod": "pm2 start ecosystem.config.js --env production"
+  },
+  "dependencies": {
+    "axios": "^1.13.4",
+    "bcryptjs": "^3.0.3",
+    "body-parser": "^1.20.2",
+    "cloudinary": "^1.41.3",
+    "compression": "^1.8.1",
+    "connect-mongo": "^5.1.0",
+    "cookie-parser": "^1.4.7",
+    "csurf": "^1.11.0",
+    "date-holidays": "^3.26.6",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.10",
+    "express": "^4.18.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.2.1",
+    "express-session": "^1.17.3",
+    "express-validator": "^7.3.1",
+    "helmet": "^8.1.0",
+    "ical-generator": "^10.0.0",
+    "json2csv": "^6.0.0-alpha.2",
+    "moment": "^2.30.1",
+    "mongoose": "^8.0.3",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
+    "node-cron": "^4.2.1",
+    "node-ical": "^0.24.0",
+    "nodemailer": "^7.0.13",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
+    "pdfkit": "^0.17.2",
+    "pm2": "^6.0.14",
+    "winston": "^3.19.0",
+    "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

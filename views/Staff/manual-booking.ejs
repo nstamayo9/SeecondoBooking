@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Booking | Staff</title>
+    
+    <!-- ✅ FAVICON ADDED HERE -->
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --bg-light: #f3f4f6;
+            --text-dark: #1f2937;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        /* --- Cards --- */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            background: #fff;
+        }
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #f0f0f0;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 1.25rem;
+        }
+
+        /* --- Forms --- */
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+        .xs-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #6b7280;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        /* --- Companions --- */
+        .companion-card {
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .companion-card:hover { border-color: #d1d5db; background: #fff; }
+
+        /* --- Alerts --- */
+        .alert-danger {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('../partials/navbar') %>
+
+    <div class="container mt-5 mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-11">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-2 rounded me-3 text-primary">
+                                <i class="fas fa-calendar-plus fa-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-0 fw-bold">Manual Booking Entry</h4>
+                                <span class="text-muted small">Create a reservation for walk-in guests or phone bookings.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        
+                        <div id="errorAlert" class="alert alert-danger shadow-sm" style="display: none;">
+                            <i class="fas fa-exclamation-circle me-2"></i> <span id="errorMsg"></span>
+                        </div>
+
+                        <!-- ENCTYPE IS CRITICAL FOR FILE UPLOADS -->
+                        <form id="manualBookingForm" action="/staff/book" method="POST" enctype="multipart/form-data">
+                            
+                            <div class="row g-4">
+                                <!-- LEFT COLUMN: DETAILS -->
+                                <div class="col-lg-8 border-end">
+                                    
+                                    <!-- 1. ROOM & DATES -->
+                                    <h6 class="fw-bold text-primary mb-3 text-uppercase small ls-1"><i class="fas fa-bed me-2"></i> Room & Schedule</h6>
+                                    <div class="row mb-4">
+                                        <div class="col-12 mb-3">
+                                            <label class="xs-label">Select Room</label>
+                                            <select name="roomId" id="roomSelect" class="form-select" required>
+                                                <% rooms.forEach(room => { %>
+                                                    <option value="<%= room._id %>" 
+                                                            data-price="<%= room.pricePerNight %>"
+                                                            data-category="<%= room.category %>"
+                                                            data-capacity="<%= room.capacity %>">
+                                                        <%= room.name %> (Max: <%= room.capacity %> guests) - ₱<%= room.pricePerNight %>/night
+                                                    </option>
+                                                <% }) %>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="xs-label">Check In</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+                                                <input type="text" name="checkIn" id="checkIn" class="form-control bg-white border-start-0 ps-0" placeholder="Select Date & Time" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="xs-label">Check Out</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-sign-out-alt text-muted"></i></span>
+                                                <input type="text" name="checkOut" id="checkOut" class="form-control bg-white border-start-0 ps-0" placeholder="Select Date & Time" required>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr class="bg-light my-4">
+
+                                    <!-- 2. PRIMARY GUEST -->
+                                    <h6 class="fw-bold text-primary mb-3 text-uppercase small ls-1"><i class="fas fa-user-circle me-2"></i> Primary Guest</h6>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-4"><label class="xs-label">First Name</label><input type="text" name="guestFirstName" class="form-control form-control-sm" required></div>
+                                        <div class="col-4"><label class="xs-label">Middle</label><input type="text" name="guestMiddleName" class="form-control form-control-sm"></div>
+                                        <div class="col-4"><label class="xs-label">Last Name</label><input type="text" name="guestLastName" class="form-control form-control-sm" required></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="xs-label">Date of Birth</label>
+                                        <input type="date" name="guestDateOfBirth" class="form-control form-control-sm" required>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6"><label class="xs-label">Email Address</label><input type="email" name="guestEmail" class="form-control form-control-sm" required></div>
+                                        <div class="col-6"><label class="xs-label">Phone Number</label><input type="text" name="guestPhone" class="form-control form-control-sm" required></div>
+                                    </div>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-5">
+                                            <label class="xs-label">ID Type</label>
+                                            <select name="guestIdType" class="form-select form-select-sm">
+                                                <option>Passport</option><option>National ID</option><option>Drivers License</option><option>Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-7">
+                                            <label class="xs-label text-success">Upload ID Image</label>
+                                            <input type="file" name="primaryIdImage" class="form-control form-control-sm" accept="image/*" required>
+                                        </div>
+                                    </div>
+
+                                    <hr class="bg-light my-4">
+
+                                    <!-- 3. COMPANIONS -->
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold text-primary mb-0 text-uppercase small ls-1"><i class="fas fa-users me-2"></i> Companions</h6>
+                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" onclick="addCompanion()">
+                                            <i class="fas fa-plus me-1"></i> Add Guest
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- CAPACITY WARNING ALERT -->
+                                    <div id="capacityWarning" class="alert alert-warning small fw-bold" style="display: none;">
+                                        <i class="fas fa-exclamation-triangle me-1"></i> Room Capacity Exceeded! Infants (0-1 yr) are excluded from the count.
+                                    </div>
+
+                                    <div id="companionsContainer" class="p-2 bg-light rounded border" style="max-height: 400px; overflow-y: auto; min-height: 100px;">
+                                        <div id="noCompanionsMsg" class="text-center text-muted py-4 small fst-italic">No companions added yet.</div>
+                                        <!-- Dynamic Rows Go Here -->
+                                    </div>
+
+                                    <div class="mb-3 mt-4">
+                                        <label class="xs-label">Special Requests / Notes</label>
+                                        <textarea name="specialRequests" class="form-control" rows="2" placeholder="e.g. Extra pillows, late arrival..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- RIGHT COLUMN: PAYMENT & PROMO -->
+                                <div class="col-lg-4">
+                                    <div class="card bg-primary bg-opacity-10 border-0 h-100">
+                                        <div class="card-body position-relative">
+                                            <h5 class="card-title text-primary fw-bold border-bottom border-primary pb-3 mb-3">Payment Summary</h5>
+                                            
+                                            <!-- Breakdown -->
+                                            <div class="d-flex justify-content-between mb-2 small">
+                                                <span class="text-muted">Room Rate:</span>
+                                                <span class="fw-bold">₱<span id="basePriceDisplay">0</span></span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2 small text-danger" id="feeRow" style="display:none;">
+                                                <span>Early/Late Fees:</span>
+                                                <span class="fw-bold">+ ₱<span id="feeDisplay">0</span></span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2 small text-success" id="discountRow" style="display:none;">
+                                                <span>Promo Discount:</span>
+                                                <span class="fw-bold">- ₱<span id="discountDisplay">0</span></span>
+                                            </div>
+
+                                            <hr class="border-secondary opacity-25">
+                                            
+                                            <!-- Total -->
+                                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                                <span class="fs-5 fw-bold text-dark">Total:</span>
+                                                <strong class="fs-2 text-primary">₱<span id="totalDisplay">0</span></strong>
+                                            </div>
+
+                                            <!-- Payment & Balance Section -->
+                                            <div class="bg-white p-3 rounded border mb-4 shadow-sm">
+                                                <label class="xs-label mb-1 text-success fw-bold">Amount Paid / Downpayment</label>
+                                                <div class="input-group input-group-sm mb-1">
+                                                    <span class="input-group-text bg-success text-white">₱</span>
+                                                    <input type="number" name="amountPaid" id="amountPaidInput" class="form-control fw-bold text-success" placeholder="0.00" oninput="calculateBalance()">
+                                                </div>
+                                                <div id="minDepositMsg" class="text-danger small fw-bold mb-3" style="font-size: 0.75rem; display: none;">
+                                                    <i class="fas fa-exclamation-circle"></i> Min 50% required: ₱<span id="minDepositVal">0</span>
+                                                </div>
+
+                                                <label class="xs-label mb-1 text-danger fw-bold">Balance Due (Upon Arrival)</label>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-light">₱</span>
+                                                    <input type="text" id="balanceDisplay" class="form-control fw-bold text-danger bg-light" readonly value="0">
+                                                </div>
+                                            </div>
+
+                                            <!-- Hidden Inputs for Submission -->
+                                            <input type="hidden" name="finalPrice" id="inputFinalPrice">
+                                            <input type="hidden" name="extraFee" id="inputExtraFee">
+                                            <input type="hidden" name="promoId" id="inputPromoId">
+
+                                            <!-- Promo Code Section -->
+                                            <div class="bg-white p-3 rounded border mb-4">
+                                                <label class="xs-label mb-2">Have a Promo Code?</label>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="text" id="promoCodeInput" class="form-control" placeholder="Enter Code">
+                                                    <button class="btn btn-dark" type="button" onclick="applyPromo()">Apply</button>
+                                                </div>
+                                                <small id="promoMessage" class="d-block mt-2 fw-bold" style="min-height: 20px;"></small>
+                                            </div>
+
+                                            <div class="d-grid">
+                                                <button type="button" id="confirmBtn" onclick="validateAndSubmit()" class="btn btn-primary btn-lg fw-bold shadow-sm">
+                                                    <i class="fas fa-check-circle me-2"></i> Confirm Booking
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script>
+        // GLOBAL STATE
+        let currentBasePrice = 0;
+        let currentExtraFee = 0;
+        let currentDiscount = 0;
+        let currentTotal = 0;
+        let currentNights = 0;
+        let isPromoApplied = false; 
+        let originalCheckOutDate = null; // Store original date before extension
+
+        // 1. Initialize Flatpickr
+        const fpConfig = {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today",
+            onClose: function() {
+                // If user manually touches the picker, we forget the "original" date and reset
+                originalCheckOutDate = null; 
+                resetPromo(); 
+                calculateTotal();
+            }
+        };
+
+        const fpOut = flatpickr("#checkOut", { ...fpConfig, defaultHour: 11 });
+
+        const fpIn = flatpickr("#checkIn", { 
+            ...fpConfig, 
+            defaultHour: 14,
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    const checkInDate = selectedDates[0];
+                    const nextDay = new Date(checkInDate);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    nextDay.setHours(11, 0, 0, 0);
+                    fpOut.setDate(nextDay);
+                    
+                    originalCheckOutDate = null; // Reset original tracker
+                    resetPromo();
+                    calculateTotal();
+                }
+            }
+        });
+
+        // 2. Add Companion
+        function addCompanion() {
+            const container = document.getElementById('companionsContainer');
+            const msg = document.getElementById('noCompanionsMsg');
+            if(msg) msg.style.display = 'none';
+
+            const nextIndex = Date.now(); 
+            
+            const div = document.createElement('div');
+            div.className = 'companion-card p-3 mb-2 shadow-sm position-relative';
+            div.innerHTML = `
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="xs-label">Name</label><input type="text" name="compName[]" class="form-control form-control-sm" required></div>
+                    <div class="col-md-3"><label class="xs-label">Age</label><input type="number" name="compAge[]" class="form-control form-control-sm" required oninput="updateGuestCount()"></div>
+                    <div class="col-md-3"><label class="xs-label">Gender</label><select name="compGender[]" class="form-select form-select-sm"><option>Male</option><option>Female</option></select></div>
+                    <div class="col-md-6"><label class="xs-label">Date of Birth</label><input type="date" name="compDateOfBirth[]" class="form-control form-control-sm" required></div>
+                    <div class="col-md-6"><label class="xs-label">Contact No.</label><input type="text" name="compContact[]" class="form-control form-control-sm"></div>
+                    <div class="col-12"><label class="xs-label">Upload ID</label><input type="file" name="compIdImage_${nextIndex}" class="form-control form-control-sm" accept="image/*"></div>
+                </div>
+                <button type="button" class="btn btn-link text-danger position-absolute top-0 end-0 p-2" onclick="removeCompanion(this)" title="Remove"><i class="fas fa-times"></i></button>
+            `;
+            container.appendChild(div);
+            updateGuestCount();
+        }
+
+        function removeCompanion(btn) {
+            btn.closest('.companion-card').remove();
+            const container = document.getElementById('companionsContainer');
+            if(container.querySelectorAll('.companion-card').length === 0) {
+                document.getElementById('noCompanionsMsg').style.display = 'block';
+            }
+            updateGuestCount();
+        }
+
+        // 3. CAPACITY CHECK
+        function updateGuestCount() {
+            const roomSelect = document.getElementById('roomSelect');
+            const maxCapacity = parseInt(roomSelect.options[roomSelect.selectedIndex].getAttribute('data-capacity'));
+            let totalCount = 1; 
+            const ageInputs = document.querySelectorAll('input[name="compAge[]"]');
+            ageInputs.forEach(input => {
+                const ageVal = input.value;
+                if (ageVal === '' || parseInt(ageVal) >= 2) { totalCount++; }
+            });
+
+            const warningEl = document.getElementById('capacityWarning');
+            const confirmBtn = document.getElementById('confirmBtn');
+
+            if (totalCount > maxCapacity) {
+                warningEl.style.display = 'block';
+                warningEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> <strong>Room Capacity Exceeded!</strong><br>Current Count: ${totalCount} (Max: ${maxCapacity}). <br><em>Note: Infants (0-1) are excluded.</em>`;
+                confirmBtn.disabled = true;
+            } else {
+                warningEl.style.display = 'none';
+                confirmBtn.disabled = false;
+            }
+        }
+
+        // 4. RESET PROMO (UPDATED TO REVERT DATES)
+        function resetPromo() {
+            if (!isPromoApplied) return;
+
+            // Revert Date if it was extended
+            if (originalCheckOutDate) {
+                fpOut.setDate(originalCheckOutDate);
+                originalCheckOutDate = null; // Clear after reverting
+            }
+
+            currentDiscount = 0;
+            document.getElementById('inputPromoId').value = "";
+            document.getElementById('promoCodeInput').value = "";
+            document.getElementById('promoMessage').innerHTML = "";
+            isPromoApplied = false;
+            
+            // Recalculate based on reverted date
+            calculateTotal();
+        }
+
+        // 5. Price Calculation
+        function calculateTotal() {
+            const roomSelect = document.getElementById('roomSelect');
+            const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+            const pricePerNight = parseFloat(selectedOption.getAttribute('data-price'));
+            const category = selectedOption.getAttribute('data-category');
+            const rateSmall = <%= config.feeSmallRoom %>;
+            const rateLarge = <%= config.feeLargeRoom %>;
+            
+            if(!fpIn.selectedDates[0] || !fpOut.selectedDates[0]) return;
+
+            const inDate = fpIn.selectedDates[0];
+            const outDate = fpOut.selectedDates[0];
+
+            currentBasePrice = 0;
+            currentExtraFee = 0;
+
+            if (inDate && outDate && outDate > inDate) {
+                const diffTime = Math.abs(outDate - inDate);
+                currentNights = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                currentBasePrice = currentNights * pricePerNight;
+
+                let hourlyRate = (['Studio', '1BR'].includes(category)) ? rateSmall : rateLarge;
+                if (inDate.getHours() < 14) { currentExtraFee += (14 - inDate.getHours()) * hourlyRate; }
+                if (outDate.getHours() > 11) { currentExtraFee += (outDate.getHours() - 11) * hourlyRate; } 
+                else if (outDate.getHours() === 11 && outDate.getMinutes() > 0) { currentExtraFee += hourlyRate; }
+            }
+            updateUI();
+        }
+
+        // Trigger reset on room change
+        document.getElementById('roomSelect').addEventListener('change', function() {
+            resetPromo();
+            calculateTotal();
+            updateGuestCount();
+        });
+
+        // 6. Apply Promo (UPDATED)
+        async function applyPromo() {
+            if (isPromoApplied) {
+                if(!confirm("A promo is already applied. Do you want to replace it?")) return;
+                resetPromo(); // Reverts date first
+            }
+
+            const code = document.getElementById('promoCodeInput').value;
+            const messageEl = document.getElementById('promoMessage');
+            const roomId = document.getElementById('roomSelect').value;
+            const checkInVal = document.getElementById('checkIn').value;
+            const roomSelect = document.getElementById('roomSelect');
+            const pricePerNight = parseFloat(roomSelect.options[roomSelect.selectedIndex].getAttribute('data-price'));
+            const guestEmail = document.querySelector('input[name="guestEmail"]').value;
+            
+            if (!code || currentBasePrice === 0) {
+                messageEl.innerHTML = '<span class="text-muted small">Please select dates first.</span>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/promo/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        code, roomId, 
+                        totalAmount: currentBasePrice, 
+                        checkInDate: checkInVal,
+                        pricePerNight: pricePerNight,
+                        nights: currentNights,
+                        email: guestEmail
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    currentDiscount = data.discountAmount;
+                    document.getElementById('inputPromoId').value = data.promoId;
+                    messageEl.innerHTML = `<span class="text-success"><i class="fas fa-check-circle"></i> ${data.message}</span>`;
+                    
+                    // AUTO EXTEND DATE LOGIC
+                    if (data.message.toLowerCase().includes("extension") || data.message.toLowerCase().includes("take 1")) {
+                        
+                        // 1. SAVE CURRENT DATE
+                        originalCheckOutDate = fpOut.selectedDates[0];
+
+                        // 2. EXTEND
+                        const newOut = new Date(originalCheckOutDate);
+                        newOut.setDate(newOut.getDate() + 1); 
+                        fpOut.setDate(newOut);
+                        
+                        messageEl.innerHTML += `<br><span class="text-primary small fw-bold">Checkout date extended!</span>`;
+                        
+                        // 3. RECALCULATE
+                        calculateTotal(); 
+                    }
+                    
+                    isPromoApplied = true;
+                    updateUI();
+                } else {
+                    currentDiscount = 0;
+                    document.getElementById('inputPromoId').value = "";
+                    messageEl.innerHTML = `<span class="text-danger"><i class="fas fa-times-circle"></i> ${data.message}</span>`;
+                    updateUI();
+                }
+            } catch (err) {
+                console.error(err);
+                messageEl.innerHTML = '<span class="text-danger">Error validating code.</span>';
+            }
+        }
+
+        function updateUI() {
+            currentTotal = (currentBasePrice + currentExtraFee) - currentDiscount;
+            if (currentTotal < 0) currentTotal = 0;
+
+            document.getElementById('basePriceDisplay').innerText = currentBasePrice.toLocaleString();
+            
+            const feeRow = document.getElementById('feeRow');
+            if (currentExtraFee > 0) {
+                feeRow.style.display = 'flex';
+                document.getElementById('feeDisplay').innerText = currentExtraFee.toLocaleString();
+            } else { feeRow.style.display = 'none'; }
+
+            const discountRow = document.getElementById('discountRow');
+            if (currentDiscount > 0) {
+                discountRow.style.display = 'flex';
+                document.getElementById('discountDisplay').innerText = currentDiscount.toLocaleString();
+            } else { discountRow.style.display = 'none'; }
+
+            document.getElementById('totalDisplay').innerText = currentTotal.toLocaleString();
+            document.getElementById('inputFinalPrice').value = currentTotal;
+            document.getElementById('inputExtraFee').value = currentExtraFee;
+            calculateBalance();
+        }
+
+        function calculateBalance() {
+            const paid = parseFloat(document.getElementById('amountPaidInput').value) || 0;
+            const minDeposit = currentTotal * 0.5;
+            const balance = currentTotal - paid;
+            
+            document.getElementById('balanceDisplay').value = balance.toLocaleString();
+            document.getElementById('minDepositVal').innerText = minDeposit.toLocaleString();
+            const msg = document.getElementById('minDepositMsg');
+            const confirmBtn = document.getElementById('confirmBtn');
+            
+            if (paid > 0 && paid < minDeposit) {
+                msg.style.display = 'block';
+                confirmBtn.disabled = true; 
+            } else {
+                msg.style.display = 'none';
+                confirmBtn.disabled = false;
+            }
+        }
+
+        async function validateAndSubmit() {
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMsg = document.getElementById('errorMsg');
+            const form = document.getElementById('manualBookingForm');
+            const roomId = document.getElementById('roomSelect').value;
+            const checkIn = document.getElementById('checkIn').value;
+            const checkOut = document.getElementById('checkOut').value;
+            const paid = parseFloat(document.getElementById('amountPaidInput').value) || 0;
+            const minDeposit = currentTotal * 0.5;
+
+            errorAlert.style.display = 'none';
+
+            if (!checkIn || !checkOut) {
+                errorMsg.innerText = "Please select a valid Check-in and Check-out date.";
+                errorAlert.style.display = 'block';
+                return;
+            }
+            if (paid < minDeposit) {
+                 errorMsg.innerText = `Downpayment must be at least 50% (₱${minDeposit.toLocaleString()}).`;
+                 errorAlert.style.display = 'block';
+                 return;
+            }
+            updateGuestCount();
+            if(document.getElementById('confirmBtn').disabled) {
+                errorMsg.innerText = "Capacity limit exceeded. Please check guest ages.";
+                errorAlert.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/check-availability', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ roomId, checkIn, checkOut })
+                });
+                const result = await response.json();
+
+                if (result.available) { form.submit(); } 
+                else {
+                    errorMsg.innerHTML = `<strong>Room Unavailable:</strong> ${result.message}`;
+                    errorAlert.style.display = 'block';
+                }
+            } catch (err) {
+                errorMsg.innerText = "Server Error. Please try again.";
+                errorAlert.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

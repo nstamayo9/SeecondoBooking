@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Stay | CondoBook</title>
+    
+        <!-- ✅ FAVICON ADDED HERE -->
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --bg-light: #f8f9fa;
+            --text-dark: #1f2937;
+            --card-radius: 12px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .card {
+            border: none;
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #f3f4f6;
+            padding: 1.25rem;
+            border-radius: var(--card-radius) var(--card-radius) 0 0 !important;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            border: 1px solid #e5e7eb;
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        .xs-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            display: block;
+        }
+
+        .btn-upload {
+            border: 1px dashed #4361ee;
+            color: #4361ee;
+            background: #eff6ff;
+            transition: all 0.2s;
+        }
+        .btn-upload:hover {
+            background: #dbeafe;
+            border-color: #3f37c9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                
+                <h3 class="fw-bold mb-4 text-center">Create Reservation</h3>
+
+                <form id="bookingForm" action="/booking/create" method="POST" enctype="multipart/form-data">
+                    
+                    <!-- 1. SCHEDULE SECTION -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-clock me-2"></i> Schedule & Promo
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="xs-label">Check-in Date</label>
+                                    <input type="date" id="dateInput" name="checkInDate" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="xs-label">Check-in Time</label>
+                                    <input type="time" id="timeInput" name="checkInTime" class="form-control" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <label class="xs-label">Promo Code (Optional)</label>
+                                <div class="input-group">
+                                    <input type="text" id="promoCode" name="promoCode" class="form-control" placeholder="Enter code here">
+                                    <button type="button" class="btn btn-dark" onclick="calculateSummary()">
+                                        <i class="fas fa-check me-1"></i> Check
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Summary -->
+                            <div id="bookingSummary" class="alert alert-info mt-4 border-0 bg-info bg-opacity-10 text-info-emphasis" style="display:none;">
+                                <div class="row small">
+                                    <div class="col-6 mb-1"><strong>Check-In:</strong> <span id="summaryCheckIn"></span></div>
+                                    <div class="col-6 mb-1"><strong>Duration:</strong> <span id="summaryDuration"></span> hrs</div>
+                                    <div class="col-6"><strong>Cleaning:</strong> <span id="summaryBuffer"></span> hrs</div>
+                                    <div class="col-6 text-danger"><strong>Check-Out:</strong> <span id="summaryCheckOut"></span></div>
+                                    <div class="col-12 mt-2 border-top pt-2" id="promoRow" style="display:none;">
+                                        <strong>Promo Applied:</strong> <span id="summaryPromo"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. PRIMARY GUEST SECTION -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-user-circle me-2"></i> Primary Guest
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="xs-label">First Name</label>
+                                    <input type="text" name="primaryFirstName" class="form-control" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="xs-label">Last Name</label>
+                                    <input type="text" name="primaryLastName" class="form-control" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="xs-label">Gender</label>
+                                    <select name="primaryGender" class="form-select">
+                                        <option>Male</option><option>Female</option><option>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="xs-label">Date of Birth</label>
+                                    <input type="date" name="primaryDOB" class="form-control" required onchange="calculateAge(this)">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="xs-label">Age</label>
+                                    <input type="number" name="primaryAge" class="form-control comp-age bg-light" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="xs-label">Contact Number</label>
+                                    <input type="text" name="primaryContact" class="form-control" required placeholder="0917-XXX-XXXX">
+                                </div>
+                            </div>
+
+                            <div class="mb-0">
+                                <label class="xs-label">Upload Valid ID</label>
+                                <label class="btn btn-upload w-100 py-2">
+                                    <i class="fas fa-camera me-2"></i> Capture or Select Image
+                                    <input type="file" name="primaryId" accept="image/*" capture="user" hidden required onchange="previewFile(this)">
+                                </label>
+                                <div class="form-text small text-end file-name-display">No file chosen</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. COMPANIONS SECTION -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-users me-2"></i> Companions</span>
+                            <button type="button" class="btn btn-sm btn-success fw-bold rounded-pill px-3" onclick="addCompanion()">
+                                <i class="fas fa-plus me-1"></i> Add Companion
+                            </button>
+                        </div>
+                        <div class="card-body p-4 bg-light" id="companionsContainer">
+                            <div class="text-center text-muted small fst-italic" id="noCompanionsMsg">
+                                No companions added yet. Click "Add Companion" to start.
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold shadow-sm">
+                        Confirm Booking <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        // 1. Add Companion Logic
+        function addCompanion() {
+            // Hide "No companions" message
+            const msg = document.getElementById('noCompanionsMsg');
+            if(msg) msg.style.display = 'none';
+
+            const container = document.getElementById('companionsContainer');
+            const index = container.children.length; // Unique index for IDs
+
+            const div = document.createElement('div');
+            div.className = 'card p-3 mb-3 border shadow-sm position-relative bg-white companion-row';
+            div.innerHTML = `
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="removeCompanion(this)" aria-label="Remove"></button>
+                <h6 class="text-secondary fw-bold mb-3 small text-uppercase">Companion ${index + 1}</h6>
+                
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="xs-label">Full Name</label>
+                        <input type="text" name="compName[]" class="form-control" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="xs-label">Date of Birth</label>
+                        <input type="date" name="compDOB[]" class="form-control" required onchange="calculateAge(this)">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="xs-label">Age</label>
+                        <input type="number" name="compAge[]" class="form-control comp-age bg-light" readonly>
+                    </div>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <label class="xs-label">Gender</label>
+                        <select name="compGender[]" class="form-select">
+                            <option>Male</option><option>Female</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="xs-label">Contact</label>
+                        <input type="text" name="compContact[]" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="xs-label">ID</label>
+                        <label class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center" style="height: 38px;">
+                            <i class="fas fa-id-card me-2"></i> Upload
+                            <input type="file" name="compIds" accept="image/*" capture="user" hidden required onchange="previewFile(this)">
+                        </label>
+                        <div class="small text-muted text-center file-name-display" style="font-size: 0.65rem;"></div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeCompanion(btn) {
+            btn.closest('.companion-row').remove();
+            // Show message if empty
+            const container = document.getElementById('companionsContainer');
+            if (container.children.length === 1) { // 1 because the msg div is still there
+                document.getElementById('noCompanionsMsg').style.display = 'block';
+            }
+        }
+
+        // 2. Auto-Calculate Age
+        function calculateAge(dobInput) {
+            const dob = new Date(dobInput.value);
+            // Find the age input in the same container (row or card)
+            const row = dobInput.closest('.row');
+            const ageInput = row.querySelector('.comp-age');
+            
+            if (dob && !isNaN(dob.getTime())) {
+                const diffMs = Date.now() - dob.getTime();
+                const ageDate = new Date(diffMs);
+                const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+                ageInput.value = age;
+            } else {
+                ageInput.value = '';
+            }
+        }
+
+        // 3. File Preview Helper
+        function previewFile(input) {
+            const display = input.parentElement.nextElementSibling; // The div.file-name-display
+            if (input.files && input.files[0]) {
+                display.innerText = input.files[0].name;
+                display.classList.add('text-success');
+            }
+        }
+
+        // 4. AJAX Summary Calculation (Mockup)
+        async function calculateSummary() {
+            const date = document.getElementById('dateInput').value;
+            const time = document.getElementById('timeInput').value;
+            const promo = document.getElementById('promoCode').value;
+            const summaryDiv = document.getElementById('bookingSummary');
+
+            if(!date || !time) {
+                alert("Please select date and time first.");
+                return;
+            }
+
+            // Simulate calculation (Replace with actual fetch call)
+            summaryDiv.style.display = 'block';
+            document.getElementById('summaryCheckIn').innerText = `${date} at ${time}`;
+            document.getElementById('summaryDuration').innerText = "22"; // Example
+            document.getElementById('summaryBuffer').innerText = "2"; // Example
+            document.getElementById('summaryCheckOut').innerText = "Calculated Date"; // Example
+            
+            if(promo) {
+                document.getElementById('promoRow').style.display = 'block';
+                document.getElementById('summaryPromo').innerText = promo + " (Checking...)";
+            }
+        }
+    </script>
+
+</body>
+</html>

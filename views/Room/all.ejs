@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Rooms | See Condo</title>
+    
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&family=Anton&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-gold: #b99d75;
+            --primary-dark: #191919;
+            --glass-bg: rgba(255, 255, 255, 0.05); 
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            /* Parallax Background */
+            background: url('<%= (typeof config !== "undefined" && config.heroImages && config.heroImages.length > 0) ? config.heroImages[0] : "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop" %>') no-repeat center center fixed;
+            background-size: cover;
+            color: #ccc;
+            min-height: 100vh;
+        }
+
+        /* Dark Overlay */
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(25, 25, 25, 0.8), #111);
+            z-index: -1;
+        }
+
+        h1, h2, h3, h4, h5 { font-family: 'Cormorant Garamond', serif; letter-spacing: 1px; color: white; }
+
+        /* --- NAVBAR --- */
+        .navbar { background: rgba(0,0,0,0.8) !important; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .nav-link { color: rgba(255,255,255,0.8) !important; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; }
+        .nav-link:hover { color: var(--primary-gold) !important; }
+
+        /* --- HEADER --- */
+        .page-header { padding: 100px 0 60px; text-align: center; }
+        .header-title { font-size: 4rem; margin-bottom: 10px; }
+        
+        /* --- SEARCH --- */
+        .search-container {
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+            padding: 10px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.2);
+            max-width: 600px; margin: 0 auto; display: flex;
+        }
+        .search-input {
+            background-color: transparent !important; /* Force transparent */
+            border: none; 
+            color: white !important; /* Force white text */
+            width: 100%;
+            padding: 5px 25px; 
+            outline: none;
+            box-shadow: none !important; /* Remove browser auto-fill white box */
+        }
+
+        /* Fix for Chrome Autofill turning it white */
+        .search-input:-webkit-autofill,
+        .search-input:-webkit-autofill:hover, 
+        .search-input:-webkit-autofill:focus, 
+        .search-input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px rgba(255,255,255,0.1) inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+        .search-btn {
+            background: var(--primary-gold); color: white; border: none;
+            width: 50px; height: 50px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- ROOM CARDS --- */
+        .room-card {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.4s ease; overflow: hidden; height: 100%;
+        }
+        .room-card:hover { transform: translateY(-10px); border-color: var(--primary-gold); }
+        
+        .img-wrapper { position: relative; height: 280px; overflow: hidden; }
+        .card-img-top { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; }
+        .room-card:hover .card-img-top { transform: scale(1.1); }
+
+        .price-badge {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(0,0,0,0.8); color: var(--primary-gold);
+            padding: 5px 15px; font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem; border: 1px solid var(--primary-gold);
+        }
+
+        .btn-view {
+            border: 1px solid rgba(255,255,255,0.3); color: white;
+            padding: 8px 25px; text-decoration: none; text-transform: uppercase;
+            font-size: 0.75rem; letter-spacing: 2px; transition: all 0.3s;
+        }
+        .btn-view:hover { background: var(--primary-gold); border-color: var(--primary-gold); color: black; }
+
+        /* --- PAGINATION --- */
+        .pagination .page-link {
+            background: transparent; border: 1px solid rgba(255,255,255,0.2);
+            color: white; margin: 0 5px; border-radius: 0 !important;
+            font-family: 'Cormorant Garamond', serif; font-size: 1.2rem;
+        }
+        .pagination .page-item.active .page-link {
+            background: var(--primary-gold); border-color: var(--primary-gold); color: black;
+        }
+        .pagination .page-link:hover {
+            background: rgba(255,255,255,0.1); color: var(--primary-gold);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container px-lg-5 px-3">
+            <a class="navbar-brand py-0" href="/">
+                <img src="/images/logo.png" alt="See Condo" style="height: 40px; width: auto; object-fit: contain;">
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><i class="fas fa-bars"></i></button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/rooms/all">Rooms</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/promos">Offers</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/dashboard">Bookings</a></li>
+                    <% if (!user) { %>
+                        <li class="nav-item ms-3"><button class="btn btn-outline-light rounded-0 text-uppercase px-4 py-2" style="letter-spacing: 1px; font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button></li>
+                    <% } else { %>
+                        <li class="nav-item ms-3"><a class="nav-link text-warning" href="/auth/logout">Logout</a></li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div class="container">
+            <h1 class="header-title">Luxury Accommodation</h1>
+            <p class="lead opacity-50 fs-6 text-uppercase letter-spacing-2">Find your perfect sanctuary</p>
+        </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="container mb-5">
+        <form action="/rooms/all" method="GET" class="search-container">
+            <input type="text" name="search" class="search-input" placeholder="Search rooms..." value="<%= typeof query !== 'undefined' ? query.search : '' %>">
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+
+    <!-- ROOMS GRID -->
+    <div class="container pb-5">
+        <div class="row g-4">
+            <% if (rooms.length > 0) { %>
+                <% rooms.forEach(room => { %>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="room-card">
+                            <div class="img-wrapper">
+                                <span class="price-badge">₱<%= room.pricePerNight.toLocaleString() %></span>
+                                <img src="<%= (room.images && room.images.length > 0) ? room.images[0] : 'https://via.placeholder.com/400x300' %>" class="card-img-top">
+                            </div>
+                            <div class="p-4 text-center">
+                                <div class="text-warning small text-uppercase mb-2" style="letter-spacing: 2px;"><%= room.category %></div>
+                                <h3 class="mb-3"><%= room.name %></h3>
+                                <div class="d-flex justify-content-center gap-3 text-white-50 small mb-4">
+                                    <span><i class="fas fa-user-friends"></i> <%= room.capacity %> Guests</span>
+                                    <span><i class="fas fa-wifi"></i> WiFi</span>
+                                </div>
+                                <a href="/room/<%= room._id %>" class="btn-view">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="col-12 text-center py-5">
+                    <h3 class="text-white-50">No rooms found.</h3>
+                    <a href="/rooms/all" class="text-warning text-decoration-none">Clear Search</a>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- PAGINATION -->
+        <% if (totalPages > 1) { %>
+            <nav class="mt-5 pt-4 border-top border-secondary">
+                <ul class="pagination justify-content-center">
+                    
+                    <!-- PREV -->
+                    <li class="page-item <%= currentPage == 1 ? 'disabled' : '' %>">
+                        <a class="page-link" href="/rooms/all?page=<%= currentPage - 1 %>&search=<%= query.search || '' %>">&laquo;</a>
+                    </li>
+
+                    <!-- NUMBERS -->
+                    <% for(let i=1; i<=totalPages; i++) { %>
+                        <li class="page-item <%= currentPage == i ? 'active' : '' %>">
+                            <a class="page-link" href="/rooms/all?page=<%= i %>&search=<%= query.search || '' %>"><%= i %></a>
+                        </li>
+                    <% } %>
+
+                    <!-- NEXT -->
+                    <li class="page-item <%= currentPage == totalPages ? 'disabled' : '' %>">
+                        <a class="page-link" href="/rooms/all?page=<%= currentPage + 1 %>&search=<%= query.search || '' %>">&raquo;</a>
+                    </li>
+
+                </ul>
+            </nav>
+        <% } %>
+    </div>
+
+    <!-- LOGIN MODAL (THEMED) -->
+    <%- include('../partials/login-modal') %>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePassword() {
+            const pInput = document.getElementById('pInput');
+            const icon = document.getElementById('toggleIcon');
+            if (pInput.type === 'password') {
+                pInput.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                pInput.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>
