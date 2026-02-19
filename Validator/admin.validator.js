@@ -6,7 +6,7 @@ const createUserValidationRules = () => {
     body('firstName').notEmpty().withMessage('First name is required'),
     body('lastName').notEmpty().withMessage('Last name is required'),
     body('username').notEmpty().withMessage('Username is required'),
-    body('email').isEmail().withMessage('Invalid email address'),
+    body('email').optional({ checkFalsy: true }).isEmail().withMessage('Invalid email address'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
     body('role').isIn(['user', 'staff', 'manager', 'admin', 'superadmin']).withMessage('Invalid role')
   ];
@@ -49,4 +49,5 @@ module.exports = {
   updateUserValidationRules,
   siteConfigValidationRules,
   validate,
+
 };
