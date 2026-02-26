@@ -72,11 +72,12 @@ exports.getHome = async (req, res) => {
             .populate('user', 'firstName lastName image')
             .sort({ createdAt: -1 })
             .limit(6);
+        const validReviews = reviews.filter(review => review.user !== null);
 
         res.render('Room/index', { 
             title: 'Welcome',
             rooms, user: req.user, config, query: req.query, hasMore,
-            resortAmenities, reviews
+            resortAmenities, reviews: validReviews
         });
 
     } catch (error) {
@@ -274,4 +275,5 @@ exports.getDashboard = async (req, res) => {
         console.error("Dashboard Error:", error);
         res.status(500).send('Server Error');
     }
+
 };
