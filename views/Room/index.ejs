@@ -295,9 +295,11 @@
                             <div class="text-warning mb-3"><% for(let x=0; x<review.rating; x++) { %><i class="fas fa-star"></i><% } %></div>
                             <p class="text-white-50 fst-italic mb-4">"<%= review.comment %>"</p>
                             <div class="d-flex align-items-center">
-                                <img src="<%= review.user.image %>" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                <img src="<%= (review.user && review.user.image) ? review.user.image : 'https://via.placeholder.com/40' %>" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
                                 <div>
-                                    <h6 class="text-white mb-0 text-uppercase small fw-bold" style="letter-spacing: 1px;"><%= review.user.firstName %></h6>
+                                    <h6 class="text-white mb-0 text-uppercase small fw-bold" style="letter-spacing: 1px;">
+                                        <%= review.user ? review.user.firstName : 'Anonymous Guest' %>
+                                    </h6>
                                     <small class="text-white-50">Verified Guest</small>
                                 </div>
                             </div>
@@ -487,3 +489,4 @@
     </script>
 </body>
 </html>
+
