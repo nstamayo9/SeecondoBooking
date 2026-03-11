@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | See Condo</title>
+    
+        <!-- ✅ FAVICON ADDED HERE -->
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    <!-- Google Fonts: Inter (UI), Anton (Headings), Merriweather (Long Text) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Anton&family=Merriweather:wght@300;400&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- PARALLAX BACKGROUND (Matches Promo Page) --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Use config image if available, else fallback */
+            background: url('<%= (typeof config !== "undefined" && config.heroImages && config.heroImages.length > 0) ? config.heroImages[0] : "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop" %>') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* Dark Overlay for Readability */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.85); /* Dark Blue-Gray Tint (Slightly darker than promo for reading) */
+            z-index: -1;
+        }
+
+        /* --- NAVBAR --- */
+        .navbar {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* --- DOCUMENT CONTAINER (DARK GLASS) --- */
+        .document-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            
+            /* Dark Glass Style */
+            background: rgba(0, 0, 0, 0.5); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .doc-header {
+            padding: 3rem 2rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+        }
+
+        .doc-title {
+            font-family: 'Anton', sans-serif; /* Matches Promo Title Font */
+            font-size: 3rem;
+            letter-spacing: 1px;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            text-transform: uppercase;
+        }
+
+        .last-updated {
+            display: inline-block;
+            background: rgba(255, 193, 7, 0.15); /* Gold tint */
+            color: #ffc107; /* Gold text */
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        /* --- LEGAL TEXT CONTENT --- */
+        .doc-body {
+            padding: 3rem;
+        }
+
+        .legal-content {
+            font-family: 'Merriweather', serif; /* Serif for long reading */
+            font-size: 1.05rem;
+            line-height: 1.9;
+            color: rgba(255, 255, 255, 0.85); /* Off-white for less eye strain */
+            white-space: pre-wrap;
+        }
+
+        .legal-content br {
+            display: block;
+            margin: 15px 0;
+            content: " ";
+        }
+
+        .doc-footer {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        /* --- BUTTONS --- */
+        .btn-close-custom {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 10px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+        .btn-close-custom:hover {
+            background: #ffc107;
+            color: #000;
+            border-color: #ffc107;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        @media (max-width: 768px) {
+            .doc-body { padding: 1.5rem; }
+            .doc-header { padding: 2rem 1.5rem; }
+            .doc-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sticky Navbar (Transparent Dark) -->
+        <nav class="navbar navbar-expand-lg sticky-top">
+            <div class="container">
+                <a class="navbar-brand py-0 d-flex align-items-center" href="/">
+                    <!-- REMOVED THE FILTER HERE -->
+                    <img src="/images/logo.png" alt="See Condo" style="height: 40px; width: auto; object-fit: contain;">
+                    <span class="ms-2 fw-bold small text-white-50 d-none d-sm-inline">Legal Center</span>
+                </a>
+                <button onclick="smartGoBack()" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                    <i class="fas fa-times me-1"></i> Close
+                </button>
+            </div>
+        </nav>
+
+    <div class="container py-5">
+        <div class="document-wrapper">
+            
+            <!-- Header -->
+            <div class="doc-header">
+                <div class="mb-3">
+                    <i class="fas fa-scale-balanced fa-3x text-warning opacity-75"></i>
+                </div>
+                <h1 class="doc-title"><%= title %></h1>
+                <span class="last-updated">
+                    <i class="far fa-clock me-1"></i> 
+                    Updated: <%= new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+                </span>
+            </div>
+
+            <!-- Body -->
+            <div class="doc-body">
+                <div class="legal-content"><%= content %></div>
+            </div>
+
+            <!-- Footer -->
+            <div class="doc-footer">
+                <button onclick="smartGoBack()" class="btn btn-close-custom">
+                    <i class="fas fa-arrow-left me-2"></i> Return to Previous Page
+                </button>
+            </div>
+
+        </div>
+        
+        <div class="text-center mt-4 text-white-50 small">
+            &copy; <%= new Date().getFullYear() %> See Condo Rentals. All rights reserved.
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script>
+        function smartGoBack() {
+            if (window.history.length > 1 && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else {
+                if(window.opener) {
+                    window.close();
+                } else {
+                    window.location.href = '/';
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>

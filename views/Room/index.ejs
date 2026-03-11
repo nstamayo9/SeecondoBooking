@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : 'Home' %> | See Condo Booking</title>
+    
+    <link rel="icon" type="image/png" href="/images/logo.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&family=Anton&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <style>
+        :root {
+            --primary-gold: #b99d75;
+            --primary-dark: #191919;
+            --text-body: #999;
+            --ease-luxury: cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            background-color: #111;
+            overflow-x: hidden;
+            margin: 0;
+            color: var(--text-body);
+        }
+
+        h1, h2, h3, h4, h5 { font-family: 'Cormorant Garamond', serif; letter-spacing: 0px; font-weight: 600; color: white; }
+        .display-font { font-family: 'Anton', sans-serif; letter-spacing: 2px; }
+
+        /* --- BACKGROUND --- */
+        .cinematic-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            background-attachment: fixed; z-index: -10;
+            transition: background-image 1s ease-in-out;
+        }
+        .overlay-gradient {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), #111);
+            z-index: -9; pointer-events: none;
+        }
+
+        /* --- ANIMATIONS --- */
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(80px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .reveal-up.active { opacity: 1; transform: translateY(0); }
+
+        .reveal-curtain { position: relative; overflow: hidden; }
+        .reveal-curtain::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #111; transform: translateX(0%);
+            transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1); z-index: 2;
+        }
+        .reveal-curtain.active::after { transform: translateX(100%); }
+        
+        .reveal-curtain img {
+            transform: scale(1.3);
+            transition: transform 1.5s var(--ease-luxury);
+            width: 100%; display: block;
+        }
+        .reveal-curtain.active img { transform: scale(1); }
+
+        /* --- NAVBAR --- */
+        .navbar { background: transparent !important; padding: 1.5rem 0; z-index: 100; transition: all 0.4s ease; }
+        .navbar.scrolled { background: rgba(17, 17, 17, 0.95) !important; backdrop-filter: blur(10px); padding: 0.8rem 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .nav-link { color: rgba(255,255,255,0.9) !important; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 500; }
+        .nav-link:hover { color: var(--primary-gold) !important; }
+
+        /* --- HERO --- */
+        .hero-section { height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; }
+        .hero-title { font-size: 5rem; line-height: 1; text-transform: uppercase; margin-bottom: 20px; opacity: 0; transform: scale(0.9); animation: heroZoom 1.5s var(--ease-luxury) forwards 0.5s; font-family: 'Cormorant Garamond', serif; }
+        .hero-sub { font-size: 1rem; letter-spacing: 6px; text-transform: uppercase; color: var(--primary-gold); opacity: 0; animation: fadeUp 1s var(--ease-luxury) forwards 0.2s; font-weight: 600; }
+        
+        @keyframes heroZoom { to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- ROOM SCROLL CONTAINER --- */
+        #roomSliderContainer {
+            display: flex;
+            gap: 30px;
+            overflow-x: hidden; 
+            padding-bottom: 20px;
+            white-space: nowrap; 
+        }
+        .room-slide-item {
+            min-width: 380px;
+            flex-shrink: 0;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .room-slide-item:hover {
+            transform: translateY(-10px);
+        }
+        
+        /* Simple Image Hover Effect (Replaces Curtain for Slider) */
+        .room-img-simple {
+            height: 480px; 
+            width: 100%; 
+            object-fit: cover; 
+            transition: transform 0.6s ease;
+        }
+        .room-slide-item:hover .room-img-simple {
+            transform: scale(1.05);
+        }
+
+        /* --- CARDS & WIDGETS --- */
+        .glass-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(5px); transition: transform 0.4s ease; }
+        .glass-card:hover { transform: translateY(-10px); border-color: var(--primary-gold); }
+
+        .weather-row { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .weather-row:last-child { border-bottom: none; }
+
+        /* --- FOOTER --- */
+        footer { background: #0a0a0a; border-top: 1px solid #222; padding: 80px 0 30px; }
+        .footer-icon { width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; border-radius: 50%; color: white; transition: all 0.3s; }
+        .footer-icon:hover { background: var(--primary-gold); border-color: var(--primary-gold); color: black; }
+
+        @media(max-width: 768px) { .hero-title { font-size: 3.5rem; } }
+    </style>
+</head>
+<body>
+
+    <!-- 1. BACKGROUND -->
+    <div class="cinematic-bg" id="heroBg"></div>
+    <div class="overlay-gradient"></div>
+
+    <!-- 2. NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+        <div class="container-fluid px-lg-5 px-3">
+            <a class="navbar-brand py-0" href="/">
+                <img src="/images/logo.png" alt="See Condo" style="height: 45px; width: auto; object-fit: contain;">
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><i class="fas fa-bars"></i></button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/rooms/all">Rooms</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/promos">Offers</a></li>
+                    <% if (!user) { %>
+                        <li class="nav-item ms-lg-4 mt-3 mt-lg-0"><button class="btn btn-outline-light rounded-0 text-uppercase px-4 py-2" style="letter-spacing: 1px; font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button></li>
+                    <% } else { %>
+                        <li class="nav-item ms-lg-4 mt-3 mt-lg-0"><a class="nav-link text-warning" href="/dashboard">My Account</a></li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 3. HERO SECTION -->
+    <div class="hero-section">
+        <div>
+            <div class="hero-sub"><%= config.heroSubtitle || 'Luxury Living' %></div>
+            <h1 class="hero-title"><%= config.heroTitle || 'Escape to Paradise' %></h1>
+            <div style="opacity: 0; animation: fadeUp 1s var(--ease-luxury) forwards 0.8s;">
+                <a href="/rooms/all" class="btn btn-light rounded-0 px-5 py-3 text-uppercase fw-bold" style="letter-spacing: 2px; font-size: 0.8rem; background: white; color: black; border: none;">Book Your Stay</a>
+            </div>
+        </div>
+        
+        <!-- Scroll Indicator -->
+        <div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); animation: bounce 2s infinite;">
+            <i class="fas fa-chevron-down text-white opacity-50"></i>
+        </div>
+    </div>
+
+    <!-- 4. ROOMS SLIDER (AUTOMATIC SCROLL) -->
+    <div class="container-fluid py-5" style="background: linear-gradient(to bottom, transparent, #111);">
+        <div class="container py-5">
+            <div class="d-flex justify-content-between align-items-end mb-5 reveal-up">
+                <div>
+                    <h5 class="text-warning text-uppercase small" style="letter-spacing: 3px; font-family: 'Jost', sans-serif;">Accommodation</h5>
+                    <h2 class="display-4 text-white">Our Suites</h2>
+                </div>
+                <a href="/rooms/all" class="text-white text-decoration-none text-uppercase small" style="letter-spacing: 2px; border-bottom: 1px solid var(--primary-gold); padding-bottom: 5px;">View All</a>
+            </div>
+
+            <!-- Auto Scroll Container -->
+            <div id="roomSliderContainer" onmouseenter="pauseScroll()" onmouseleave="resumeScroll()">
+                <% if (rooms.length > 0) { %>
+                    <% rooms.forEach((room) => { %>
+                        <div class="room-slide-item">
+                            <a href="/room/<%= room._id %>" class="text-decoration-none">
+                                <div class="mb-3 overflow-hidden position-relative">
+                                    <img src="<%= (room.images && room.images.length > 0) ? room.images[0] : 'https://via.placeholder.com/400x500' %>" 
+                                         class="room-img-simple">
+                                </div>
+                                <h4 class="text-white mb-1 fs-3"><%= room.name %></h4>
+                                <div class="text-warning small text-uppercase" style="letter-spacing: 2px; font-family: 'Jost', sans-serif;">₱<%= room.pricePerNight.toLocaleString() %> / Night</div>
+                            </a>
+                        </div>
+                    <% }) %>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. ABOUT SECTION -->
+    <div class="container py-5 my-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0 pe-lg-5">
+                <div class="reveal-curtain">
+                    <img src="<%= config.aboutImage || 'https://via.placeholder.com/800x600' %>" class="img-fluid w-100">
+                </div>
+            </div>
+            <div class="col-lg-6 ps-lg-5 reveal-up">
+                <h5 class="text-warning text-uppercase small" style="letter-spacing: 3px; font-family: 'Jost', sans-serif;">About Us</h5>
+                <h2 class="display-4 text-white mb-4"><%= config.aboutTitle %></h2>
+                <p class="text-white-50 mb-4" style="line-height: 1.8; font-size: 1.1rem;">
+                    <%= config.aboutDescription %>
+                </p>
+                <div class="row g-4 mt-2">
+                    <div class="col-4 border-start border-secondary ps-4">
+                        <h2 class="text-white display-font mb-0">5+</h2>
+                        <small class="text-white-50 text-uppercase" style="letter-spacing: 1px;">Years</small>
+                    </div>
+                    <div class="col-4 border-start border-secondary ps-4">
+                        <h2 class="text-white display-font mb-0">100+</h2>
+                        <small class="text-white-50 text-uppercase" style="letter-spacing: 1px;">Guests</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. AMENITIES -->
+    <div class="container py-5 mb-5">
+        <div class="text-center mb-5 reveal-up">
+            <h5 class="text-warning text-uppercase small" style="letter-spacing: 3px; font-family: 'Jost', sans-serif;">Facilities</h5>
+            <h2 class="display-4 text-white">Resort Amenities</h2>
+        </div>
+        <div class="row g-4">
+            <% if(typeof resortAmenities !== 'undefined' && resortAmenities.length > 0) { %>
+                <% resortAmenities.forEach((amenity, index) => { %>
+                    <div class="col-md-4 col-sm-6 reveal-up">
+                        <div class="glass-card h-100 overflow-hidden">
+                            <div id="carouselAmenity<%= index %>" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                                <div class="carousel-inner">
+                                    <% if(amenity.images && amenity.images.length > 0) { %>
+                                        <% amenity.images.forEach((img, imgIndex) => { %>
+                                            <div class="carousel-item <%= imgIndex === 0 ? 'active' : '' %>" data-bs-interval="4000">
+                                                <div style="height: 250px; overflow: hidden;">
+                                                    <img src="<%= img %>" class="d-block w-100" style="height: 100%; width: 100%; object-fit: cover;">
+                                                </div>
+                                            </div>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <div class="carousel-item active"><div style="height: 250px; background: #222; display: flex; align-items: center; justify-content: center;">No Image</div></div>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div class="p-4 text-center">
+                                <h4 class="text-white mb-2"><%= amenity.name %></h4>
+                                <p class="text-white-50 small mb-0"><%= amenity.description %></p>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- 7. VIDEO TOUR -->
+    <% if (config.videoUrl) { %>
+    <div class="container-fluid px-0 mb-5 reveal-curtain">
+        <div class="position-relative" style="padding-bottom: 56.25%; height: 0; overflow: hidden;">
+            <div id="dynamicVideoFrame" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- 8. REVIEWS -->
+    <div class="container py-5 mb-5">
+        <div class="text-center mb-5 reveal-up">
+            <h5 class="text-warning text-uppercase small" style="letter-spacing: 3px; font-family: 'Jost', sans-serif;">Testimonials</h5>
+            <h2 class="display-4 text-white">Guest Reviews</h2>
+        </div>
+        <div class="row g-4">
+            <% if(typeof reviews !== 'undefined' && reviews.length > 0) { %>
+                <% reviews.forEach((review, i) => { %>
+                    <div class="col-md-4 reveal-up">
+                        <div class="p-4 border border-secondary h-100" style="background: #151515;">
+                            <div class="text-warning mb-3"><% for(let x=0; x<review.rating; x++) { %><i class="fas fa-star"></i><% } %></div>
+                            <p class="text-white-50 fst-italic mb-4">"<%= review.comment %>"</p>
+                            <div class="d-flex align-items-center">
+                                <img src="<%= review.user.image %>" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                <div>
+                                    <h6 class="text-white mb-0 text-uppercase small fw-bold" style="letter-spacing: 1px;"><%= review.user.firstName %></h6>
+                                    <small class="text-white-50">Verified Guest</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- 9. LOCATION & WEATHER -->
+    <div class="container py-5 mb-5 reveal-up">
+        <div class="row g-0 border border-secondary">
+            <div class="col-lg-8">
+                <div id="resortMap" style="height: 500px; width: 100%;"></div>
+            </div>
+            <div class="col-lg-4 bg-dark p-5 d-flex flex-column">
+                <h3 class="text-white display-font mb-4">5-Day Forecast</h3>
+                <div id="weatherContainer" class="flex-grow-1">
+                    <div class="text-white-50">Loading forecast...</div>
+                </div>
+                <div class="mt-4 pt-4 border-top border-secondary">
+                    <p class="text-white mb-2"><i class="fas fa-map-marker-alt text-warning me-2"></i> <%= config.propertyAddress %></p>
+                    <p class="text-white mb-0"><i class="fas fa-phone text-warning me-2"></i> <%= config.contactNumber %></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="row gy-5">
+                <div class="col-lg-4">
+                    <!-- FIXED LOGO: Removed filters so original logo shows -->
+                    <img src="/images/logo.png" style="height: 60px; margin-bottom: 20px; object-fit: contain;">
+                    
+                    <p class="text-white-50 mb-4">Experience the ultimate relaxation at Pico de Loro. Luxury condos, pristine beaches, and world-class amenities await.</p>
+                    <div class="d-flex gap-3">
+                        <% if(config.socialFacebook) { %><a href="<%= config.socialFacebook %>" class="footer-icon" target="_blank"><i class="fab fa-facebook-f"></i></a><% } %>
+                        <% if(config.socialInstagram) { %><a href="<%= config.socialInstagram %>" class="footer-icon" target="_blank"><i class="fab fa-instagram"></i></a><% } %>
+                        <% if(config.socialViber) { %><a href="viber://contact?number=<%= config.socialViber %>" class="footer-icon"><i class="fab fa-viber"></i></a><% } %>
+                        <% if(config.socialTiktok) { %><a href="<%= config.socialTiktok %>" class="footer-icon" target="_blank"><i class="fab fa-tiktok"></i></a><% } %>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <h5 class="text-white mb-4">Contact Us</h5>
+                    <p class="text-white-50 mb-2"><i class="fas fa-map-marker-alt text-warning me-2"></i> <%= config.propertyAddress %></p>
+                    <p class="text-white-50 mb-2"><i class="fas fa-phone text-warning me-2"></i> <%= config.contactNumber %></p>
+                    <p class="text-white-50 mb-2"><i class="fas fa-envelope text-warning me-2"></i> <%= config.ownerEmail %></p>
+                </div>
+                <div class="col-lg-4">
+                    <h5 class="text-white mb-4">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="/rooms/all" class="text-white-50 text-decoration-none hover-white">Accommodation</a></li>
+                        <li class="mb-2"><a href="/promos" class="text-white-50 text-decoration-none hover-white">Special Offers</a></li>
+                        <li class="mb-2"><a href="/legal/terms" class="text-white-50 text-decoration-none hover-white">Terms & Conditions</a></li>
+                        <li class="mb-2"><a href="/legal/privacy" class="text-white-50 text-decoration-none hover-white">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top border-secondary mt-5 pt-4 text-center small text-white-50">
+                &copy; <%= new Date().getFullYear() %> See Condo Rentals. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- LOGIN MODAL -->
+    <%- include('../partials/login-modal') %>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // --- 1. ANIMATIONS (SCROLL UP & DOWN) ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                } else {
+                    entry.target.classList.remove('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal-up, .reveal-curtain').forEach(el => observer.observe(el));
+
+        // --- 2. INFINITE ROOM SCROLLING ---
+        const sliderContainer = document.getElementById('roomSliderContainer');
+        let scrollInterval;
+        let isPaused = false;
+
+        // Clone items on load to create infinite effect
+        window.addEventListener('load', () => {
+            if(sliderContainer && sliderContainer.children.length > 0) {
+                const originalContent = sliderContainer.innerHTML;
+                // Double clone to ensure smooth looping on wide screens
+                sliderContainer.innerHTML += originalContent + originalContent; 
+                startAutoScroll();
+            }
+        });
+
+        function startAutoScroll() {
+            if(!sliderContainer) return;
+            scrollInterval = setInterval(() => {
+                if (!isPaused) {
+                    sliderContainer.scrollLeft += 1; // Speed
+                    // Reset when reaching 1/3rd (since we tripled content)
+                    if (sliderContainer.scrollLeft >= sliderContainer.scrollWidth / 3) {
+                        sliderContainer.scrollLeft = 0;
+                    }
+                }
+            }, 20); 
+        }
+
+        function pauseScroll() { isPaused = true; }
+        function resumeScroll() { isPaused = false; }
+
+        // --- 3. NAVBAR SCROLL ---
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('mainNav');
+            if (window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+        // --- 4. BACKGROUND CYCLING ---
+        const heroImages = <%- JSON.stringify(config.heroImages && config.heroImages.length > 0 ? config.heroImages : ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070']) %>;
+        const bgElement = document.getElementById('heroBg');
+        let imgIndex = 0;
+        
+        function setHeroImage() { bgElement.style.backgroundImage = `url('${heroImages[imgIndex]}')`; }
+        setHeroImage();
+
+        if (heroImages.length > 1) {
+            setInterval(() => {
+                imgIndex = (imgIndex + 1) % heroImages.length;
+                setHeroImage();
+            }, 6000);
+        }
+
+        // --- 5. MAP ---
+        const lat = 14.2155; const lon = 120.6037;
+        const map = L.map('resortMap', { scrollWheelZoom: false }).setView([lat, lon], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+        L.marker([lat, lon]).addTo(map).bindPopup('<b>See Condo</b>').openPopup();
+
+        // --- 6. WEATHER ---
+        fetch('/api/v1/weather').then(res => res.json()).then(data => {
+            const container = document.getElementById('weatherContainer');
+            container.innerHTML = '';
+            if(data.length > 0) {
+                data.forEach(day => {
+                    container.innerHTML += `
+                        <div class="weather-row">
+                            <div class="d-flex align-items-center">
+                                <img src="${day.icon}" width="30" class="me-2">
+                                <span class="text-white small fw-bold">${day.date}</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-warning fw-bold">${day.temp}°C</span>
+                                <div class="text-white-50" style="font-size: 0.7rem;">${day.description}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else { container.innerHTML = '<div class="text-white-50">Weather unavailable</div>'; }
+        }).catch(err => console.error(err));
+
+        // --- 7. YOUTUBE API ---
+        const rawVideoUrl = "<%= config.videoUrl %>";
+        if (rawVideoUrl) {
+             var tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api";
+             var firstScriptTag = document.getElementsByTagName('script')[0]; firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+             var player;
+             window.onYouTubeIframeAPIReady = function() {
+                const match = rawVideoUrl.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
+                if (match && match[2].length === 11) {
+                    player = new YT.Player('dynamicVideoFrame', {
+                        videoId: match[2],
+                        playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 0, 'loop': 1, 'playlist': match[2], 'playsinline': 1 },
+                        events: { 'onReady': (e) => { e.target.mute(); e.target.playVideo(); } }
+                    });
+                }
+             }
+        }
+    </script>
+</body>
+</html>
